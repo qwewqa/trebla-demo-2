@@ -1,0 +1,68 @@
+script Stage {
+    callback preprocess {
+        menuUI = UIInfo(
+            anchorX = aspectRatio - 0.05,
+            anchorY = 0.95,
+            pivotX = 1,
+            pivotY = 1,
+            width = 0.15,
+            height = 0.15,
+            alpha = 1,
+            background = true,
+        )
+        judgmentUI = UIInfo(
+            anchorX = 0,
+            anchorY = 2 * -0.25,
+            pivotX = 0.5,
+            pivotY = 0,
+            width = 0.8,
+            height = 0.2,
+            alpha = 1.0,
+        )
+        comboValueUI = UIInfo(
+            anchorX = aspectRatio * 0.7,
+            anchorY = 0,
+            pivotX = 0.5,
+            pivotY = 0,
+            width = 0.5,
+            height = 0.25,
+            alpha = 1.0,
+        )
+        comboTextUI = UIInfo(
+            anchorX = aspectRatio * 0.7,
+            anchorY = 0,
+            pivotX = 0.5,
+            pivotY = 1,
+            width = 0.5,
+            height = 0.15,
+            alpha = 1.0,
+        )
+        scoreBarUI = UIInfo(
+            anchorX = 0.05 - aspectRatio,
+            anchorY = 0.95,
+            pivotX = 0,
+            pivotY = 1,
+            width = 0.75,
+            height = 0.15,
+            alpha = 1,
+            horizontalAlign = -1,
+            background = true,
+        )
+        scoreValueUI = UIInfo(
+            anchorX = 0.2 - aspectRatio,
+            anchorY = 0.95,
+            pivotX = 0,
+            pivotY = 1,
+            width = 0.6,
+            height = 0.15,
+            alpha = 1,
+            horizontalAlign = 1
+        )
+    }
+
+    callback updateSequential {
+        centerRectangle(Point(0, -0.6), aspectRatio, 0.05).draw(41_000, 0, 1)
+    }
+}
+
+archetype Stage -> Stage()

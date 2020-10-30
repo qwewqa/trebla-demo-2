@@ -1,0 +1,14 @@
+# Source file directory
+src: "./src"
+
+# Build directory
+out: "./out"
+
+# Level directory
+levels: "./levels"
+
+# Level Options
+options: []
+
+# Judgment buckets (optional)
+buckets: []

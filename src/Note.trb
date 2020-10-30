@@ -1,0 +1,98 @@
+// This is an example of what part of a simple rhythm game written in Trebla might look like.
+// While missing some components for a complete game standalone, this file does in fact compile.
+// A full project that includes this file verbatim is available at
+// https://github.com/qwewqa/trebla-demo-2/
+// A video of that project being ran can be found at https://www.youtube.com/watch?v=TP-q3eTWSyk
+// This file contains the source code for a note script, which travels down the screen and requires
+// the player to tap the screen at a particular time when the note is at a particular position.
+// Judgements of perfect, great, good, or miss are given depending on how accurate the player was.
+
+// Let declarations bind a name to the value on the right hand side.
+// Unlike variable declarations, let declarations do not use their own memory
+// or make a copy of any value. It simply gives a name to refer to the value on the right.
+let preemptTime = 1.0
+
+// The timing windows, in seconds, for each judgement.
+// For example, a player must tap within 0.05 seconds of the note's time to receive a perfect judgement.
+let perfectWindow = 0.05
+let greatWindow = 0.1
+let goodWindow = 0.15
+
+// Numbers can have underlines in them for clarity when reading them.
+let textureNote = 1_006
+
+script Note {
+    // Data variables can be inputs to an entity.
+    data var targetTime: Number
+
+    // Enums can be used to represent a closed set of values.
+    enum InputState {
+        Waiting,
+        Terminated, // Trailing commas are optional
+    }
+
+    // Variables declared directly within a script are members
+    // of each instance of the script.
+    // Type can be omitted where they can be inferred directly.
+    var inputState = InputState.Waiting
+
+    // Instances of scripts are placed in a spawning queue in Sonolus.
+    // Each frame, the shouldSpawn callback is checked for the top script
+    // and if the return value is true, the script is spawned and the next script is checked.
+    callback shouldSpawn {
+        // The final expression in a callback is returned.
+        targetTime - time <= preemptTime
+    }
+
+    // This is called each frame once a script is spawned.
+    // The script is set to despawn if the callback returns true.
+    callback updateParallel {
+        var alreadyTerminated = inputState matches InputState.Terminated
+        var pastJudgementTime = time - targetTime > goodWindow
+
+        // Functions are declared with the "func" keyword and can be declared in most places,
+        // including within callbacks and other functions.
+        func drawNoteSprite(): Boolean {
+            // The y coordinate of the screen in trebla spans from -1.0 to 1.0,
+            // but spawning the note a bit above y=1.0 allows the note to travel into the screen
+            // instead of suddenly appearing.
+            var noteY = ((targetTime - time) / preemptTime).lerp(-0.6, 1.2)
+
+            // "centerSquare" is a function that returns a quad.
+            // Named function parameters are supported.
+            // "Point" is a struct with two "Number" type members.
+            var quad = centerSquare(Point(0, noteY), halfWidth = 0.2)
+
+            // "draw" is a method on a quad.
+            quad.draw(textureNote, z = 1, alpha = 1)
+
+            // This final value is returned by the function.
+            false
+        }
+
+        // The "||" (OR) operator short-circuits.
+        alreadyTerminated || pastJudgementTime || drawNoteSprite()
+    }
+
+    // The touch callback is called after each frame for each touch input received.
+    callback touch {
+        var notTerminated = !(inputState matches InputState.Terminated)
+        var enteredJudgmentWindow = targetTime - time <= goodWindow
+        if (notTerminated && touchStarted && enteredJudgmentWindow) {
+            inputState = InputState.Terminated
+            // "entityJudgement" is a variable built into Sonolus that holds
+            // the final judgement value of each scored note.
+            // "judgeSimple" returns an enum value representing the judgement.
+            entityJudgment = judgeSimple(time, targetTime, perfectWindow, greatWindow, goodWindow)
+
+            // Enums can have methods too.
+            entityJudgment.clip().play()
+        }
+    }
+}
+
+// Archetypes are linked scripts and are used by Sonolus as a way of pre-populating data fields.
+// They also determine whether a script counts for scoring
+// or exists for other purposes such as visual effects.
+// They also have their own namespace and can share a name with other types of declarations.
+note archetype Note -> Note()
